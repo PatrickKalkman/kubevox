@@ -5,10 +5,10 @@ Tests for the Llama tools schema generation functionality.
 import pytest
 
 from kubevox.llama.llama_tools import (
+    generate_assistant_header,
     generate_llama_tools_schema,
     generate_system_prompt,
     generate_user_message,
-    generate_assistant_header,
 )
 from kubevox.registry.function_registry import FunctionRegistry
 
@@ -76,9 +76,9 @@ def test_generate_llama_tools_schema_no_parameters(sample_function):
 def test_generate_system_prompt(sample_function):
     """Test generation of system prompt with function definitions."""
     FunctionRegistry.functions = [sample_function]
-    
+
     system_prompt = generate_system_prompt()
-    
+
     # Check for required components
     assert system_prompt.startswith("<|start_header_id|>system<|end_header_id|>")
     assert system_prompt.endswith("<|eot_id|>")
@@ -91,7 +91,7 @@ def test_generate_user_message():
     """Test generation of formatted user messages."""
     test_message = "List all pods in namespace default"
     formatted_message = generate_user_message(test_message)
-    
+
     assert formatted_message.startswith("<|start_header_id|>user<|end_header_id|>")
     assert test_message in formatted_message
     assert formatted_message.endswith("<|eot_id|>")
@@ -100,5 +100,5 @@ def test_generate_user_message():
 def test_generate_assistant_header():
     """Test generation of assistant header."""
     header = generate_assistant_header()
-    
+
     assert header == "<|start_header_id|>assistant<|end_header_id|>"
