@@ -4,7 +4,12 @@ Tests for the Llama tools schema generation functionality.
 
 import pytest
 
-from kubevox.llama.llama_tools import generate_llama_tools_schema
+from kubevox.llama.llama_tools import (
+    generate_llama_tools_schema,
+    generate_system_prompt,
+    generate_user_message,
+    generate_assistant_header,
+)
 from kubevox.registry.function_registry import FunctionRegistry
 
 
