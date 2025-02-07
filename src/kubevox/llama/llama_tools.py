@@ -46,7 +46,7 @@ def generate_system_prompt() -> str:
     """
     function_definitions = json.dumps(generate_llama_tools_schema(), indent=2)
     
-    system_prompt = """<|start_header_id|>system<|end_header_id|>
+    system_prompt = f"""<|start_header_id|>system<|end_header_id|>
 You are an expert in composing functions. You are given a question and a set of possible functions. 
 Based on the question, you will need to make one or more function/tool calls to achieve the purpose. 
 If none of the function can be used, point it out. If the given question lacks the parameters required by the function,
@@ -57,7 +57,7 @@ You SHOULD NOT include any other text in the response.
 
 Here is a list of functions in JSON format that you can invoke.
 
-{functions}
-<|eot_id|>""".format(functions=function_definitions)
+{function_definitions}
+<|eot_id|>"""
 
     return system_prompt
