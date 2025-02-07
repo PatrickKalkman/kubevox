@@ -74,3 +74,12 @@ def generate_user_message(message: str) -> str:
     """
     return f"""<|start_header_id|>user<|end_header_id|>
 {message}<|eot_id|>"""
+
+def generate_assistant_header() -> str:
+    """
+    Generate the assistant header token for Llama model interaction.
+    
+    Returns:
+        String containing the assistant header token.
+    """
+    return "<|start_header_id|>assistant<|end_header_id|>"
