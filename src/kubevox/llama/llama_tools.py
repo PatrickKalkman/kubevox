@@ -62,9 +62,9 @@ Here is a list of functions in JSON format that you can invoke.
 
     return system_prompt
 
-def format_user_message(message: str) -> str:
+def generate_user_message(message: str) -> str:
     """
-    Format a user message with the appropriate tokens for Llama model interaction.
+    Generate a formatted user message with the appropriate tokens for Llama model interaction.
     
     Args:
         message: The user's input message to be formatted.
