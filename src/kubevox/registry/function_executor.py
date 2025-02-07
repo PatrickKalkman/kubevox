@@ -1,5 +1,6 @@
-from typing import Any, Dict, Callable
 import inspect
+from typing import Any, Callable, Dict
+
 from loguru import logger
 
 

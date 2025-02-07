@@ -1,5 +1,5 @@
 """
-Kubernetes tools and utilities.
+Definitions of functions that interact with a Kubernetes cluster that the LLM uses to execute commands.
 """
 
 import os
@@ -69,9 +69,7 @@ async def get_number_of_namespaces() -> Dict[str, Any]:
         "required": ["deployment_name"],
     },
 )
-async def analyze_deployment_logs(
-    deployment_name: str, namespace: str = "default"
-) -> Dict[str, Any]:
+async def analyze_deployment_logs(deployment_name: str, namespace: str = "default") -> Dict[str, Any]:
     """
     Analyze logs from all pods in a deployment.
 
@@ -86,16 +84,12 @@ async def analyze_deployment_logs(
     v1 = client.CoreV1Api()
 
     # Get pods for deployment
-    pods = v1.list_namespaced_pod(
-        namespace=namespace, label_selector=f"app={deployment_name}"
-    )
+    pods = v1.list_namespaced_pod(namespace=namespace, label_selector=f"app={deployment_name}")
 
     log_analysis = defaultdict(int)
     for pod in pods.items:
         try:
-            logs = v1.read_namespaced_pod_log(
-                name=pod.metadata.name, namespace=namespace, since_seconds=3600
-            )
+            logs = v1.read_namespaced_pod_log(name=pod.metadata.name, namespace=namespace, since_seconds=3600)
 
             # Count occurrences
             log_analysis["CRITICAL"] += logs.count("CRITICAL")

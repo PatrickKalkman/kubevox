@@ -1,5 +1,5 @@
 import json
-from typing import Callable, get_type_hints, Literal, Optional, Dict, Any
+from typing import Any, Callable, Dict, Literal, Optional, get_type_hints
 
 
 class FunctionRegistry:
