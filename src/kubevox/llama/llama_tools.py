@@ -61,3 +61,16 @@ Here is a list of functions in JSON format that you can invoke.
 <|eot_id|>"""
 
     return system_prompt
+
+def format_user_message(message: str) -> str:
+    """
+    Format a user message with the appropriate tokens for Llama model interaction.
+    
+    Args:
+        message: The user's input message to be formatted.
+        
+    Returns:
+        String containing the formatted user message with tokens.
+    """
+    return f"""<|start_header_id|>user<|end_header_id|>
+{message}<|eot_id|>"""
