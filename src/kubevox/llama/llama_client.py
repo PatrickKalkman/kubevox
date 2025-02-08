@@ -57,9 +57,9 @@ async def check_server_health(config: LlamaServerConfig) -> Tuple[bool, str]:
         return False, "Connection timed out"
 
 
-async def get_completion(
+async def generate_llm_response(
     config: LlamaServerConfig,
-    prompt: str,
+    user_message: str,
     *,
     temperature: float = 0.7,
     top_p: float = 0.9,
@@ -67,24 +67,31 @@ async def get_completion(
     stop: Optional[list[str]] = None,
 ) -> Dict[str, Any]:
     """
-    Get a completion from the Llama server.
+    Generate a response from the Llama server using the provided user message.
 
     Args:
         config: Server configuration
-        prompt: The prompt to send to the model
+        user_message: The user's input message
         temperature: Sampling temperature (default: 0.7)
         top_p: Nucleus sampling threshold (default: 0.9)
         max_tokens: Maximum number of tokens to generate (default: 2048)
         stop: Optional list of strings to stop generation at
 
     Returns:
-        Dictionary containing the completion response
+        Dictionary containing the model's response
     """
     try:
         completion_url = urljoin(config.base_url, "/completion")
         
+        # Construct the full prompt with system context and formatting
+        full_prompt = (
+            f"{generate_system_prompt()}\n"
+            f"{generate_user_message(user_message)}\n"
+            f"{generate_assistant_header()}"
+        )
+        
         payload = {
-            "prompt": prompt,
+            "prompt": full_prompt,
             "temperature": temperature,
             "top_p": top_p,
             "n_predict": max_tokens,
