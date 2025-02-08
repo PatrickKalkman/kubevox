@@ -11,6 +11,7 @@ from kubevox.registry.function_registry import FunctionRegistry
 
 class ToolParameters(TypedDict):
     """Type definition for tool parameters structure."""
+
     type: str
     required: List[str]
     properties: Dict[str, Any]
@@ -18,9 +19,11 @@ class ToolParameters(TypedDict):
 
 class ToolSchema(TypedDict):
     """Type definition for complete tool schema."""
+
     name: str
     description: str
     parameters: ToolParameters
+
 
 START_HEADER = "<|start_header_id|>"
 END_HEADER = "<|end_header_id|>"
