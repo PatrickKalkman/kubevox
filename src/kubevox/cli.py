@@ -24,6 +24,9 @@ async def main():
     
     logger.info("Server is healthy, sending query...")
     
+    # Log available functions
+    logger.debug(f"Available functions: {[f.__name__ for f in FunctionRegistry.functions]}")
+    
     try:
         response = await client.generate_llm_response(
             "Get the number of namespaces in the Kubernetes cluster"
