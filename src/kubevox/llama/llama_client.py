@@ -3,7 +3,6 @@ Client configuration and interaction with local LLama server.
 """
 
 import asyncio
-import json
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple
 from urllib.parse import urljoin
@@ -11,11 +10,7 @@ from urllib.parse import urljoin
 import aiohttp
 from aiohttp import ClientError
 
-from kubevox.llama.llama_tools import (
-    generate_assistant_header,
-    generate_system_prompt,
-    generate_user_message,
-)
+from kubevox.llama.llama_tools import generate_assistant_header, generate_system_prompt, generate_user_message
 
 
 @dataclass
@@ -82,14 +77,12 @@ async def generate_llm_response(
     """
     try:
         completion_url = urljoin(config.base_url, "/completion")
-        
+
         # Construct the full prompt with system context and formatting
         full_prompt = (
-            f"{generate_system_prompt()}\n"
-            f"{generate_user_message(user_message)}\n"
-            f"{generate_assistant_header()}"
+            f"{generate_system_prompt()}\n{generate_user_message(user_message)}\n{generate_assistant_header()}"
         )
-        
+
         payload = {
             "prompt": full_prompt,
             "temperature": temperature,
@@ -99,11 +92,7 @@ async def generate_llm_response(
         }
 
         async with aiohttp.ClientSession() as session:
-            async with session.post(
-                completion_url,
-                json=payload,
-                timeout=30.0
-            ) as response:
+            async with session.post(completion_url, json=payload, timeout=30.0) as response:
                 if response.status != 200:
                     raise ClientError(f"Server returned status code: {response.status}")
                 return await response.json()
