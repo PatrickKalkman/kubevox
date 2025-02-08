@@ -3,7 +3,6 @@ Client configuration and interaction with local LLama server.
 """
 
 import asyncio
-
 from dataclasses import dataclass
 from typing import Optional, Tuple
 from urllib.parse import urljoin
@@ -43,7 +42,7 @@ class LlamaServerConfig:
                         return True, "Server is healthy"
                     else:
                         return False, f"Server returned status code: {response.status}"
-                
+
         except ClientError as e:
             return False, f"Failed to connect to server: {str(e)}"
         except asyncio.TimeoutError:
