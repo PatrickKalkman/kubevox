@@ -2,11 +2,11 @@
 Command-line interface for KubeVox.
 """
 
-import argparse
 import asyncio
 import sys
 from typing import Optional
 
+import typer
 from loguru import logger
 
 from kubevox.assistant import Assistant
@@ -15,6 +15,8 @@ from kubevox.llama.llama_client import LlamaClient, LlamaServerConfig
 # Configure logger to only show info and higher
 logger.remove()
 logger.add(sys.stderr, level="INFO")
+
+app = typer.Typer(help="Kubernetes Voice Assistant CLI")
 
 
 async def run_text_mode(assistant: Assistant, query: str) -> None:
@@ -51,71 +53,88 @@ def run_voice_mode(assistant: Assistant, duration: float, device_index: Optional
         assistant.stop_voice_interaction()
 
 
-async def main():
-    parser = argparse.ArgumentParser(
-        description="Kubernetes Voice Assistant CLI", formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
+@app.command()
+def text(
+    query: str = typer.Argument(..., help="Text query to process"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+    output: str = typer.Option("text", "--output", help="Output mode (text or voice via ElevenLabs)"),
+    elevenlabs_key: Optional[str] = typer.Option(None, "--elevenlabs-key", help="ElevenLabs API key"),
+    model: str = typer.Option(
+        "mlx-community/whisper-large-v3-turbo",
+        "--model",
+        help="Path or name of the Whisper model to use"
+    ),
+):
+    """Run in text mode with a single query."""
+    async def run():
+        logger.info("Initializing LlamaClient...")
+        config = LlamaServerConfig()
+        client = LlamaClient(config)
 
-    # General options
-    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging")
+        healthy, message = await client.check_server_health()
+        if not healthy:
+            logger.error(f"Server health check failed: {message}")
+            raise typer.Exit(1)
 
-    # Input mode selection
-    mode_group = parser.add_mutually_exclusive_group(required=True)
-    mode_group.add_argument("-t", "--text", help="Run in text mode with the provided query")
-    mode_group.add_argument("--voice", action="store_true", help="Run in voice interaction mode")
+        logger.info("Server is healthy, starting assistant...")
 
-    # Output mode selection
-    parser.add_argument(
-        "--output", choices=["text", "voice"], default="text", help="Choose output mode (text or voice via ElevenLabs)"
-    )
-    parser.add_argument("--elevenlabs-key", help="ElevenLabs API key (can also be set via ELEVENLABS_API_KEY env var)")
+        assistant = Assistant(
+            llamaClient=client,
+            model_path=model,
+            output_mode=output,
+            elevenlabs_api_key=elevenlabs_key,
+        )
 
-    # Voice mode options
-    parser.add_argument(
-        "--model", default="mlx-community/whisper-large-v3-turbo", help="Path or name of the Whisper model to use"
-    )
-    parser.add_argument("--duration", type=float, default=4.0, help="Recording duration in seconds for voice mode")
-    parser.add_argument("--device", type=int, help="Audio input device index")
+        try:
+            await run_text_mode(assistant, query)
+        except Exception as e:
+            logger.error(f"Error: {str(e)}")
+            raise typer.Exit(1)
 
-    args = parser.parse_args()
+    asyncio.run(run())
 
+@app.command()
+def voice(
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+    output: str = typer.Option("text", "--output", help="Output mode (text or voice via ElevenLabs)"),
+    elevenlabs_key: Optional[str] = typer.Option(None, "--elevenlabs-key", help="ElevenLabs API key"),
+    model: str = typer.Option(
+        "mlx-community/whisper-large-v3-turbo",
+        "--model",
+        help="Path or name of the Whisper model to use"
+    ),
+    duration: float = typer.Option(4.0, "--duration", help="Recording duration in seconds"),
+    device: Optional[int] = typer.Option(None, "--device", help="Audio input device index"),
+):
+    """Run in voice interaction mode."""
     logger.info("Initializing LlamaClient...")
-
-    # Initialize the client with default configuration
     config = LlamaServerConfig()
     client = LlamaClient(config)
 
-    # Check server health first
-    healthy, message = await client.check_server_health()
-    if not healthy:
-        logger.error(f"Server health check failed: {message}")
-        return
+    async def check_health():
+        healthy, message = await client.check_server_health()
+        if not healthy:
+            logger.error(f"Server health check failed: {message}")
+            raise typer.Exit(1)
 
+    asyncio.run(check_health())
+    
     logger.info("Server is healthy, starting assistant...")
 
     assistant = Assistant(
         llamaClient=client,
-        model_path=args.model,
-        input_device=args.device,
-        recording_duration=args.duration,
-        output_mode=args.output,
-        elevenlabs_api_key=args.elevenlabs_key,
+        model_path=model,
+        input_device=device,
+        recording_duration=duration,
+        output_mode=output,
+        elevenlabs_api_key=elevenlabs_key,
     )
 
-    # Run in selected mode
     try:
-        if args.text:
-            await run_text_mode(assistant, args.text)
-        else:  # voice mode
-            run_voice_mode(assistant, args.duration, args.device)
-    except KeyboardInterrupt:
-        print("\nExiting...")
+        run_voice_mode(assistant, duration, device)
     except Exception as e:
         logger.error(f"Error: {str(e)}")
-        return 1
-
-    return 0
-
+        raise typer.Exit(1)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    app()

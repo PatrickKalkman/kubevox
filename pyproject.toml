@@ -13,6 +13,7 @@ dependencies = [
     "pynput>=1.7.7",
     "python-dotenv>=1.0.1",
     "sounddevice>=0.5.1",
+    "typer>=0.9.0",
 ]
 
 
