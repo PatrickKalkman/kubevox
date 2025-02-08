@@ -40,10 +40,7 @@ async def test_check_health_success(monkeypatch):
     config = LlamaServerConfig()
     mock_response = MockResponse(status=200)
 
-    async def mock_client_session(*args, **kwargs):
-        return MockClientSession(mock_response)
-
-    monkeypatch.setattr("aiohttp.ClientSession", mock_client_session)
+    monkeypatch.setattr("aiohttp.ClientSession", lambda *args, **kwargs: MockClientSession(mock_response))
 
     is_healthy, message = await config.check_health()
     assert is_healthy is True
@@ -56,10 +53,7 @@ async def test_check_health_error_status(monkeypatch):
     config = LlamaServerConfig()
     mock_response = MockResponse(status=500)
 
-    async def mock_client_session(*args, **kwargs):
-        return MockClientSession(mock_response)
-
-    monkeypatch.setattr("aiohttp.ClientSession", mock_client_session)
+    monkeypatch.setattr("aiohttp.ClientSession", lambda *args, **kwargs: MockClientSession(mock_response))
 
     is_healthy, message = await config.check_health()
     assert is_healthy is False
@@ -71,10 +65,10 @@ async def test_check_health_connection_error(monkeypatch):
     """Test health check with connection error."""
     config = LlamaServerConfig()
 
-    async def mock_client_session(*args, **kwargs):
+    def mock_session(*args, **kwargs):
         raise ClientError()
-
-    monkeypatch.setattr("aiohttp.ClientSession", mock_client_session)
+    
+    monkeypatch.setattr("aiohttp.ClientSession", mock_session)
 
     is_healthy, message = await config.check_health()
     assert is_healthy is False
