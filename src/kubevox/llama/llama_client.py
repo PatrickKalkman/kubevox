@@ -52,6 +52,10 @@ async def check_server_health(config: LlamaServerConfig) -> Tuple[bool, str]:
         return False, "Connection timed out"
 
 
+# Track whether system prompt has been sent
+_system_prompt_sent = False
+
+
 async def generate_llm_response(
     config: LlamaServerConfig,
     user_message: str,
@@ -78,10 +82,16 @@ async def generate_llm_response(
     try:
         completion_url = urljoin(config.base_url, "/completion")
 
-        # Construct the full prompt with system context and formatting
-        full_prompt = (
-            f"{generate_system_prompt()}\n{generate_user_message(user_message)}\n{generate_assistant_header()}"
-        )
+        global _system_prompt_sent
+        
+        # Only include system prompt on first call
+        if not _system_prompt_sent:
+            full_prompt = (
+                f"{generate_system_prompt()}\n{generate_user_message(user_message)}\n{generate_assistant_header()}"
+            )
+            _system_prompt_sent = True
+        else:
+            full_prompt = f"{generate_user_message(user_message)}\n{generate_assistant_header()}"
 
         payload = {
             "prompt": full_prompt,
