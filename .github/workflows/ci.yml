@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: macos-14
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    env:
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install system dependencies
+      run: |
+        brew install portaudio
+    
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    
+    - name: Lint with ruff
+      run: uv run ruff check src tests
+    
+    - name: Run tests
+      run: uv run pytest tests/
+
+  build:
+    needs: test
+    runs-on: macos-14
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install system dependencies
+      run: |
+        brew install portaudio
+    
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    
+    - name: Build package
+      run: uv run hatch build
+    
+    - name: Get package metadata
+      id: metadata
+      run: |
+        echo "pkg_name=$(uv run python -c "import tomli; print(tomli.load(open('pyproject.toml', 'rb'))['project']['name'])")" >> $GITHUB_OUTPUT
+        echo "version=$(uv run python -c "import tomli; print(tomli.load(open('pyproject.toml', 'rb'))['project']['version'])")" >> $GITHUB_OUTPUT
+    
+    - name: Store build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.metadata.outputs.pkg_name }}-${{ steps.metadata.outputs.version }}
+        path: dist/
+        retention-days: 5
