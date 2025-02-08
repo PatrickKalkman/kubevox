@@ -6,10 +6,13 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "aiohttp>=3.11.12",
+    "elevenlabs>=1.50.7",
     "kubernetes>=32.0.0",
     "loguru>=0.7.3",
     "mlx-whisper>=0.4.1",
+    "pynput>=1.7.7",
     "python-dotenv>=1.0.1",
+    "sounddevice>=0.5.1",
 ]
 
 
