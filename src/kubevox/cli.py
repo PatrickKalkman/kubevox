@@ -6,6 +6,7 @@ import asyncio
 from loguru import logger
 
 from kubevox.llama.llama_client import LlamaClient, LlamaServerConfig
+from kubevox.registry.function_registry import FunctionRegistry
 
 
 async def main():
