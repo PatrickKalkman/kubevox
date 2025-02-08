@@ -3,6 +3,7 @@ Tests for the LlamaClient functionality.
 """
 
 import pytest
+import pytest_asyncio
 from aiohttp import ClientError
 
 from kubevox.llama.llama_client import LlamaServerConfig
