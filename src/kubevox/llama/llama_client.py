@@ -30,41 +30,45 @@ class LlamaServerConfig:
         return f"http://{self.host}:{self.port}"
 
 
-async def check_server_health(config: LlamaServerConfig) -> Tuple[bool, str]:
-    """
-    Check if the LLama server is running and healthy.
-
-    Returns:
-        Tuple of (is_healthy: bool, message: str)
-    """
-    try:
-        health_url = urljoin(config.base_url, "/health")
-        async with aiohttp.ClientSession() as session:
-            async with session.get(health_url, timeout=5.0) as response:
-                if response.status == 200:
-                    return True, "Server is healthy"
-                else:
-                    return False, f"Server returned status code: {response.status}"
-
-    except ClientError as e:
-        return False, f"Failed to connect to server: {str(e)}"
-    except asyncio.TimeoutError:
-        return False, "Connection timed out"
 
 
-# Track whether system prompt has been sent
-_system_prompt_sent = False
+class LlamaClient:
+    """Client for interacting with the Llama server."""
+    
+    def __init__(self, config: LlamaServerConfig):
+        self.config = config
+        self._system_prompt_sent = False
 
+    async def check_server_health(self) -> Tuple[bool, str]:
+        """
+        Check if the LLama server is running and healthy.
 
-async def generate_llm_response(
-    config: LlamaServerConfig,
-    user_message: str,
-    *,
-    temperature: float = 0.7,
-    top_p: float = 0.9,
-    max_tokens: int = 2048,
-    stop: Optional[list[str]] = None,
-) -> Dict[str, Any]:
+        Returns:
+            Tuple of (is_healthy: bool, message: str)
+        """
+        try:
+            health_url = urljoin(self.config.base_url, "/health")
+            async with aiohttp.ClientSession() as session:
+                async with session.get(health_url, timeout=5.0) as response:
+                    if response.status == 200:
+                        return True, "Server is healthy"
+                    else:
+                        return False, f"Server returned status code: {response.status}"
+
+        except ClientError as e:
+            return False, f"Failed to connect to server: {str(e)}"
+        except asyncio.TimeoutError:
+            return False, "Connection timed out"
+
+    async def generate_llm_response(
+        self,
+        user_message: str,
+        *,
+        temperature: float = 0.7,
+        top_p: float = 0.9,
+        max_tokens: int = 2048,
+        stop: Optional[list[str]] = None,
+    ) -> Dict[str, Any]:
     """
     Generate a response from the Llama server using the provided user message.
 
@@ -79,33 +83,44 @@ async def generate_llm_response(
     Returns:
         Dictionary containing the model's response
     """
-    try:
-        completion_url = urljoin(config.base_url, "/completion")
+        """
+        Generate a response from the Llama server using the provided user message.
 
-        global _system_prompt_sent
-        
-        # Only include system prompt on first call
-        if not _system_prompt_sent:
-            full_prompt = (
-                f"{generate_system_prompt()}\n{generate_user_message(user_message)}\n{generate_assistant_header()}"
-            )
-            _system_prompt_sent = True
-        else:
-            full_prompt = f"{generate_user_message(user_message)}\n{generate_assistant_header()}"
+        Args:
+            user_message: The user's input message
+            temperature: Sampling temperature (default: 0.7)
+            top_p: Nucleus sampling threshold (default: 0.9)
+            max_tokens: Maximum number of tokens to generate (default: 2048)
+            stop: Optional list of strings to stop generation at
 
-        payload = {
-            "prompt": full_prompt,
-            "temperature": temperature,
-            "top_p": top_p,
-            "n_predict": max_tokens,
-            "stop": stop or [],
-        }
+        Returns:
+            Dictionary containing the model's response
+        """
+        try:
+            completion_url = urljoin(self.config.base_url, "/completion")
+            
+            # Only include system prompt on first call
+            if not self._system_prompt_sent:
+                full_prompt = (
+                    f"{generate_system_prompt()}\n{generate_user_message(user_message)}\n{generate_assistant_header()}"
+                )
+                self._system_prompt_sent = True
+            else:
+                full_prompt = f"{generate_user_message(user_message)}\n{generate_assistant_header()}"
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(completion_url, json=payload, timeout=30.0) as response:
-                if response.status != 200:
-                    raise ClientError(f"Server returned status code: {response.status}")
-                return await response.json()
+            payload = {
+                "prompt": full_prompt,
+                "temperature": temperature,
+                "top_p": top_p,
+                "n_predict": max_tokens,
+                "stop": stop or [],
+            }
 
-    except (ClientError, asyncio.TimeoutError) as e:
-        raise ClientError(f"Failed to get completion: {str(e)}")
+            async with aiohttp.ClientSession() as session:
+                async with session.post(completion_url, json=payload, timeout=30.0) as response:
+                    if response.status != 200:
+                        raise ClientError(f"Server returned status code: {response.status}")
+                    return await response.json()
+
+        except (ClientError, asyncio.TimeoutError) as e:
+            raise ClientError(f"Failed to get completion: {str(e)}")
