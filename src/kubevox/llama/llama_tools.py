@@ -6,8 +6,8 @@ Generate system prompts for Llama model interaction.
 import json
 from typing import Any, Dict, List, TypedDict
 
-from kubevox.registry.function_registry import FunctionRegistry
 from kubevox.registry import k8s_functions  # noqa: F401
+from kubevox.registry.function_registry import FunctionRegistry
 
 
 class ToolParameters(TypedDict):

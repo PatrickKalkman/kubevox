@@ -10,7 +10,6 @@ from urllib.parse import urljoin
 
 import aiohttp
 from aiohttp import ClientError
-from loguru import logger
 
 from kubevox.llama.llama_tools import generate_assistant_header, generate_system_prompt, generate_user_message
 
@@ -90,7 +89,6 @@ class LlamaClient:
                 full_prompt = (
                     f"{generate_system_prompt()}\n{generate_user_message(user_message)}\n{generate_assistant_header()}"
                 )
-                logger.info(full_prompt)
                 self._system_prompt_sent = True
             else:
                 full_prompt = f"{generate_user_message(user_message)}\n{generate_assistant_header()}"
@@ -127,6 +125,6 @@ class LlamaClient:
 
         content = response["content"]
         # Match function calls in the format: function_name(param1=value1, param2=value2)
-        pattern = r'\w+\([^)]*\)'
+        pattern = r"\w+\([^)]*\)"
         matches = re.findall(pattern, content)
         return matches
