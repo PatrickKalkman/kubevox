@@ -2,12 +2,14 @@
 Client configuration and interaction with local LLama server.
 """
 
+import asyncio
+
 from dataclasses import dataclass
 from typing import Optional, Tuple
 from urllib.parse import urljoin
 
-import requests
-from requests.exceptions import RequestException
+import aiohttp
+from aiohttp import ClientError
 
 
 @dataclass
@@ -26,7 +28,7 @@ class LlamaServerConfig:
         """Get the base URL for the LLama server."""
         return f"http://{self.host}:{self.port}"
 
-    def check_health(self) -> Tuple[bool, str]:
+    async def check_health(self) -> Tuple[bool, str]:
         """
         Check if the LLama server is running and healthy.
 
@@ -35,12 +37,14 @@ class LlamaServerConfig:
         """
         try:
             health_url = urljoin(self.base_url, "/health")
-            response = requests.get(health_url, timeout=5.0)
-            
-            if response.status_code == 200:
-                return True, "Server is healthy"
-            else:
-                return False, f"Server returned status code: {response.status_code}"
+            async with aiohttp.ClientSession() as session:
+                async with session.get(health_url, timeout=5.0) as response:
+                    if response.status == 200:
+                        return True, "Server is healthy"
+                    else:
+                        return False, f"Server returned status code: {response.status}"
                 
-        except RequestException as e:
+        except ClientError as e:
             return False, f"Failed to connect to server: {str(e)}"
+        except asyncio.TimeoutError:
+            return False, "Connection timed out"
