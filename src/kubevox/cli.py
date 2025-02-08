@@ -31,9 +31,9 @@ async def main():
 
     try:
         response = await client.generate_llm_response("Get the number of namespaces in the Kubernetes cluster")
-        logger.info("Response received:")
-        logger.info(response)
-        
+        logger.debug("Response received:")
+        logger.debug(response)
+
         function_calls = client.extract_function_calls(response)
         logger.info("Extracted function calls:")
         logger.info(function_calls)
