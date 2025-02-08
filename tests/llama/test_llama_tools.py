@@ -61,7 +61,7 @@ def test_generate_llama_tools_schema_empty():
 
 
 def test_generate_llama_tools_schema_no_parameters(sample_function):
-    """Test schema generation for a function without parameters."""
+    """Test generating schema for a function that has no parameters defined."""
     # Remove parameters from the test function
     sample_function.metadata.pop("parameters")
     FunctionRegistry.functions = [sample_function]
