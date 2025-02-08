@@ -3,8 +3,11 @@ Client configuration and interaction with local LLama server.
 """
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Tuple
 from urllib.parse import urljoin
+
+import requests
+from requests.exceptions import RequestException
 
 
 @dataclass
@@ -22,3 +25,22 @@ class LlamaServerConfig:
     def base_url(self) -> str:
         """Get the base URL for the LLama server."""
         return f"http://{self.host}:{self.port}"
+
+    def check_health(self) -> Tuple[bool, str]:
+        """
+        Check if the LLama server is running and healthy.
+
+        Returns:
+            Tuple of (is_healthy: bool, message: str)
+        """
+        try:
+            health_url = urljoin(self.base_url, "/health")
+            response = requests.get(health_url, timeout=5.0)
+            
+            if response.status_code == 200:
+                return True, "Server is healthy"
+            else:
+                return False, f"Server returned status code: {response.status_code}"
+                
+        except RequestException as e:
+            return False, f"Failed to connect to server: {str(e)}"
