@@ -4,16 +4,30 @@ Generate system prompts for Llama model interaction.
 """
 
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, TypedDict
 
 from kubevox.registry.function_registry import FunctionRegistry
+
+
+class ToolParameters(TypedDict):
+    """Type definition for tool parameters structure."""
+    type: str
+    required: List[str]
+    properties: Dict[str, Any]
+
+
+class ToolSchema(TypedDict):
+    """Type definition for complete tool schema."""
+    name: str
+    description: str
+    parameters: ToolParameters
 
 START_HEADER = "<|start_header_id|>"
 END_HEADER = "<|end_header_id|>"
 EOT = "<|eot_id|>"
 
 
-def generate_llama_tools_schema() -> List[Dict[str, Any]]:
+def generate_llama_tools_schema() -> List[ToolSchema]:
     """
     Convert all registered functions to Llama tools specification format.
 
