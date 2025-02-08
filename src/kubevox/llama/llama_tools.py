@@ -6,6 +6,10 @@ Generate system prompts for Llama model interaction.
 import json
 from typing import Any, Dict, List
 
+START_HEADER = "<|start_header_id|>"
+END_HEADER = "<|end_header_id|>"
+EOT = "<|eot_id|>"
+
 from kubevox.registry.function_registry import FunctionRegistry
 
 
@@ -47,7 +51,7 @@ def generate_system_prompt() -> str:
     """
     function_definitions = json.dumps(generate_llama_tools_schema(), indent=2)
 
-    system_prompt = f"""<|start_header_id|>system<|end_header_id|>
+    system_prompt = f"""{START_HEADER}system{END_HEADER}
 You are an expert in composing functions. You are given a question and a set of possible functions. \
 Based on the question, you will need to make one or more function/tool calls to achieve the purpose. \
 If none of the function can be used, point it out. If the given question lacks the parameters required
@@ -60,7 +64,7 @@ You SHOULD NOT include any other text in the response.
 Here is a list of functions in JSON format that you can invoke.
 
 {function_definitions}
-<|eot_id|>"""
+{EOT}"""
 
     return system_prompt
 
@@ -75,8 +79,8 @@ def generate_user_message(message: str) -> str:
     Returns:
         String containing the formatted user message with tokens.
     """
-    return f"""<|start_header_id|>user<|end_header_id|>
-{message}<|eot_id|>"""
+    return f"""{START_HEADER}user{END_HEADER}
+{message}{EOT}"""
 
 
 def generate_assistant_header() -> str:
@@ -86,4 +90,4 @@ def generate_assistant_header() -> str:
     Returns:
         String containing the assistant header token.
     """
-    return "<|start_header_id|>assistant<|end_header_id|>"
+    return f"{START_HEADER}assistant{END_HEADER}"
