@@ -35,11 +35,13 @@ line-length = 120
 
 [tool.pytest.ini_options]
 asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
 
 [dependency-groups]
 dev = [
     "hatch>=1.14.0",
     "pytest>=8.3.4",
     "pytest-asyncio>=0.23.5",
+    "aioresponses>=0.7.8",
     "ruff>=0.9.5",
 ]

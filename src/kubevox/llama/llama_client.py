@@ -27,23 +27,24 @@ class LlamaServerConfig:
         """Get the base URL for the LLama server."""
         return f"http://{self.host}:{self.port}"
 
-    async def check_health(self) -> Tuple[bool, str]:
-        """
-        Check if the LLama server is running and healthy.
 
-        Returns:
-            Tuple of (is_healthy: bool, message: str)
-        """
-        try:
-            health_url = urljoin(self.base_url, "/health")
-            async with aiohttp.ClientSession() as session:
-                async with session.get(health_url, timeout=5.0) as response:
-                    if response.status == 200:
-                        return True, "Server is healthy"
-                    else:
-                        return False, f"Server returned status code: {response.status}"
+async def check_server_health(config: LlamaServerConfig) -> Tuple[bool, str]:
+    """
+    Check if the LLama server is running and healthy.
 
-        except ClientError as e:
-            return False, f"Failed to connect to server: {str(e)}"
-        except asyncio.TimeoutError:
-            return False, "Connection timed out"
+    Returns:
+        Tuple of (is_healthy: bool, message: str)
+    """
+    try:
+        health_url = urljoin(config.base_url, "/health")
+        async with aiohttp.ClientSession() as session:
+            async with session.get(health_url, timeout=5.0) as response:
+                if response.status == 200:
+                    return True, "Server is healthy"
+                else:
+                    return False, f"Server returned status code: {response.status}"
+
+    except ClientError as e:
+        return False, f"Failed to connect to server: {str(e)}"
+    except asyncio.TimeoutError:
+        return False, "Connection timed out"
