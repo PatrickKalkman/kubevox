@@ -69,6 +69,20 @@ class Assistant:
         function_calls = self.llamaClient.extract_function_calls(response)
         logger.info(f"Extracted function calls: {function_calls}")
 
+        # Execute any identified functions
+        results = []
+        for func_call in function_calls:
+            # Extract function name from the call string (e.g. "get_cluster_status()" -> "get_cluster_status")
+            func_name = func_call.split('(')[0]
+            result = await self.execute_function_call({"name": func_name, "parameters": {}})
+            results.append(result)
+
+        return {
+            "response": response,
+            "function_calls": function_calls,
+            "results": results
+        }
+
     async def process_speech(self, audio_data) -> dict:
         """
         Process speech input through transcription and LLM.
@@ -137,17 +151,26 @@ class Assistant:
         self.transcriber.set_input_device(device_index)
         logger.info(f"Set input device to index: {device_index}")
 
-    async def execute_function_call(self, parsed_response: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a function based on the parsed LLM response."""
+    async def execute_function_call(self, function_info: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute a function based on its name and parameters.
 
-        func_name = parsed_response.get("name")
+        Args:
+            function_info: Dictionary containing:
+                - name: Name of the function to execute
+                - parameters: Dictionary of parameters to pass to the function
+
+        Returns:
+            Dictionary containing the execution results
+        """
+        func_name = function_info.get("name")
         func = next((f for f in FunctionRegistry.functions if f.__name__ == func_name), None)
 
         if not func:
             return {"error": f"Function {func_name} not found"}
 
         try:
-            result = await FunctionExecutor.execute_function(func, **parsed_response.get("parameters", {}))
+            result = await FunctionExecutor.execute_function(func, **function_info.get("parameters", {}))
             return result
         except Exception as e:
             return {"error": f"Function execution error: {str(e)}"}
