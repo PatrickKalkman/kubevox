@@ -18,6 +18,18 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+
+    - name: Send build start notification
+      if: always()
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        message: |
+          🚀 Build Started!
+          Repository: ${{ github.repository }}
+          Branch: ${{ github.ref_name }}
+          Triggered by: ${{ github.actor }}
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -75,3 +87,22 @@ jobs:
         name: ${{ steps.metadata.outputs.pkg_name }}-${{ steps.metadata.outputs.version }}
         path: dist/
         retention-days: 5
+        
+    - name: Send notification
+      if: always()
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        message: |
+          📊 Build Status: ${{ job.status }}
+          
+          Repository: ${{ github.repository }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          Triggered by: ${{ github.actor }}
+          
+          Workflow: ${{ github.workflow }}
+          Run: ${{ github.run_id }}
+          
+          ${{ github.event.head_commit.message }}
