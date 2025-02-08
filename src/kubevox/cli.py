@@ -33,6 +33,10 @@ async def main():
         response = await client.generate_llm_response("Get the number of namespaces in the Kubernetes cluster")
         logger.info("Response received:")
         logger.info(response)
+        
+        function_calls = client.extract_function_calls(response)
+        logger.info("Extracted function calls:")
+        logger.info(function_calls)
     except Exception as e:
         logger.error(f"Error generating response: {e}")
 

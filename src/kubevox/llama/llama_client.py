@@ -3,8 +3,9 @@ Client configuration and interaction with local LLama server.
 """
 
 import asyncio
+import re
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urljoin
 
 import aiohttp
@@ -110,3 +111,22 @@ class LlamaClient:
 
         except (ClientError, asyncio.TimeoutError) as e:
             raise ClientError(f"Failed to get completion: {str(e)}")
+
+    def extract_function_calls(self, response: Dict[str, Any]) -> List[str]:
+        """
+        Extract function calls from the LLM response content.
+
+        Args:
+            response: The response dictionary from the LLM
+
+        Returns:
+            List of function call strings
+        """
+        if "content" not in response:
+            return []
+
+        content = response["content"]
+        # Match function calls in the format: function_name(param1=value1, param2=value2)
+        pattern = r'\w+\([^)]*\)'
+        matches = re.findall(pattern, content)
+        return matches
