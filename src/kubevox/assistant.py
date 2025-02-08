@@ -2,13 +2,15 @@
 Main assistant implementation combining speech, LLM, and Kubernetes functionality.
 """
 
-from typing import Callable, Literal, Optional
+from typing import Any, Callable, Dict, Literal, Optional
 
 from loguru import logger
 
 from kubevox.audio.elevenlabs_speaker import ElevenLabsSpeaker
 from kubevox.audio.whisper_transcriber import WhisperTranscriber
 from kubevox.llama.llama_client import LlamaClient
+from kubevox.registry.function_executor import FunctionExecutor
+from kubevox.registry.function_registry import FunctionRegistry
 
 
 class Assistant:
@@ -134,3 +136,18 @@ class Assistant:
         """
         self.transcriber.set_input_device(device_index)
         logger.info(f"Set input device to index: {device_index}")
+
+    async def execute_function_call(self, parsed_response: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a function based on the parsed LLM response."""
+
+        func_name = parsed_response.get("name")
+        func = next((f for f in FunctionRegistry.functions if f.__name__ == func_name), None)
+
+        if not func:
+            return {"error": f"Function {func_name} not found"}
+
+        try:
+            result = await FunctionExecutor.execute_function(func, **parsed_response.get("parameters", {}))
+            return result
+        except Exception as e:
+            return {"error": f"Function execution error: {str(e)}"}
