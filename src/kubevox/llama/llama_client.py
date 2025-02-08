@@ -69,20 +69,6 @@ class LlamaClient:
         max_tokens: int = 2048,
         stop: Optional[list[str]] = None,
     ) -> Dict[str, Any]:
-    """
-    Generate a response from the Llama server using the provided user message.
-
-    Args:
-        config: Server configuration
-        user_message: The user's input message
-        temperature: Sampling temperature (default: 0.7)
-        top_p: Nucleus sampling threshold (default: 0.9)
-        max_tokens: Maximum number of tokens to generate (default: 2048)
-        stop: Optional list of strings to stop generation at
-
-    Returns:
-        Dictionary containing the model's response
-    """
         """
         Generate a response from the Llama server using the provided user message.
 
