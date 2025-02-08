@@ -105,7 +105,7 @@ async def main():
     # Run in selected mode
     try:
         if args.text:
-            asyncio.run(run_text_mode(assistant, args.text))
+            await run_text_mode(assistant, args.text)
         else:  # voice mode
             run_voice_mode(assistant, args.duration, args.device)
     except KeyboardInterrupt:
