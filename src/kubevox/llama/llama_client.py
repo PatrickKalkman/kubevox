@@ -30,11 +30,9 @@ class LlamaServerConfig:
         return f"http://{self.host}:{self.port}"
 
 
-
-
 class LlamaClient:
     """Client for interacting with the Llama server."""
-    
+
     def __init__(self, config: LlamaServerConfig):
         self.config = config
         self._system_prompt_sent = False
@@ -84,7 +82,7 @@ class LlamaClient:
         """
         try:
             completion_url = urljoin(self.config.base_url, "/completion")
-            
+
             # Only include system prompt on first call
             if not self._system_prompt_sent:
                 full_prompt = (

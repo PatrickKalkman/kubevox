@@ -2,7 +2,7 @@ import pytest
 from aiohttp import ClientError
 from aioresponses import aioresponses
 
-from kubevox.llama.llama_client import LlamaServerConfig, LlamaClient
+from kubevox.llama.llama_client import LlamaClient, LlamaServerConfig
 
 
 @pytest.fixture
