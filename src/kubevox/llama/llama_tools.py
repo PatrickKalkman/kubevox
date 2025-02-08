@@ -6,11 +6,11 @@ Generate system prompts for Llama model interaction.
 import json
 from typing import Any, Dict, List
 
+from kubevox.registry.function_registry import FunctionRegistry
+
 START_HEADER = "<|start_header_id|>"
 END_HEADER = "<|end_header_id|>"
 EOT = "<|eot_id|>"
-
-from kubevox.registry.function_registry import FunctionRegistry
 
 
 def generate_llama_tools_schema() -> List[Dict[str, Any]]:
