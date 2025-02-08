@@ -36,7 +36,6 @@ class LlamaClient:
 
     def __init__(self, config: LlamaServerConfig):
         self.config = config
-        self._system_prompt_sent = False
 
     async def check_server_health(self) -> Tuple[bool, str]:
         """
@@ -84,14 +83,10 @@ class LlamaClient:
         try:
             completion_url = urljoin(self.config.base_url, "/completion")
 
-            # Only include system prompt on first call
-            if not self._system_prompt_sent:
-                full_prompt = (
-                    f"{generate_system_prompt()}\n{generate_user_message(user_message)}\n{generate_assistant_header()}"
-                )
-                self._system_prompt_sent = True
-            else:
-                full_prompt = f"{generate_user_message(user_message)}\n{generate_assistant_header()}"
+            # Always include the complete prompt
+            full_prompt = (
+                f"{generate_system_prompt()}\n{generate_user_message(user_message)}\n{generate_assistant_header()}"
+            )
 
             payload = {
                 "prompt": full_prompt,
