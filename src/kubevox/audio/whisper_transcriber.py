@@ -9,6 +9,106 @@ from pynput import keyboard
 from scipy import signal
 
 
+@dataclass
+class AudioConfig:
+    """Configuration for audio processing."""
+    sample_rate: int = 16000
+    channels: int = 1
+    recording_duration: float = 5.0
+    min_amplitude: float = 0.01
+    noise_reduction: bool = True
+    block_duration_ms: int = 100  # Duration of audio blocks in milliseconds
+
+
+class AudioProcessor:
+    """Handles audio signal processing operations."""
+
+    def __init__(self, config: AudioConfig):
+        self.config = config
+
+    def resample(self, audio_data: np.ndarray, orig_sr: int, target_sr: int) -> np.ndarray:
+        """Resample audio data to the target sample rate."""
+        duration = len(audio_data) / orig_sr
+        target_length = int(duration * target_sr)
+        logger.debug(f"Resampling {len(audio_data)} samples to {target_length}")
+        return signal.resample(audio_data, target_length)
+
+    def normalize(self, audio_data: np.ndarray) -> np.ndarray:
+        """Normalize audio data to the range [-1, 1]."""
+        if len(audio_data) == 0:
+            logger.warning("Received empty audio data for normalization")
+            return np.array([])
+
+        audio_data = audio_data.flatten()
+        max_amplitude = np.max(np.abs(audio_data))
+
+        if max_amplitude > 0:
+            audio_data = audio_data / max_amplitude
+            logger.debug(f"Normalized audio: max amplitude = {np.max(np.abs(audio_data))}")
+        else:
+            logger.warning("Audio data is silent (max amplitude = 0)")
+
+        return audio_data
+
+    def reduce_noise(self, audio_data: np.ndarray) -> np.ndarray:
+        """Apply noise reduction to the audio signal."""
+        if len(audio_data) == 0:
+            return audio_data
+
+        # Estimate noise from the first 0.1 seconds
+        noise_sample = audio_data[: int(self.config.sample_rate * 0.1)]
+        noise_profile = np.mean(np.abs(noise_sample))
+        logger.debug(f"Estimated noise profile: {noise_profile}")
+
+        # Apply noise gate
+        threshold = noise_profile * 2
+        audio_data = np.where(np.abs(audio_data) < threshold, 0, audio_data)
+
+        # Apply low-pass filter
+        b, a = signal.butter(4, 2000 / (self.config.sample_rate / 2), btype="low")
+        return signal.filtfilt(b, a, audio_data)
+
+
+class AudioDeviceManager:
+    """Manages audio device configuration and streaming."""
+
+    def __init__(self, config: AudioConfig, device_index: Optional[int] = None):
+        self.config = config
+        self.device_index = device_index
+        self.device_sample_rate = self._get_device_sample_rate()
+        self.stream: Optional[sd.InputStream] = None
+
+    def _get_device_sample_rate(self) -> int:
+        """Get the sample rate of the selected audio device."""
+        try:
+            device_info = sd.query_devices(self.device_index, "input")
+            logger.info(f"Using audio input device: {device_info['name']}")
+            return int(device_info["default_samplerate"])
+        except sd.PortAudioError as e:
+            logger.error(f"Error accessing audio device: {e}")
+            raise
+
+    def create_stream(self, callback: Callable) -> sd.InputStream:
+        """Create and configure the audio input stream."""
+        try:
+            blocksize = int(self.device_sample_rate * self.config.block_duration_ms / 1000)
+            return sd.InputStream(
+                device=self.device_index,
+                channels=self.config.channels,
+                samplerate=self.device_sample_rate,
+                blocksize=blocksize,
+                callback=callback,
+            )
+        except sd.PortAudioError as e:
+            logger.error(f"Error initializing audio stream: {e}")
+            raise
+
+
+class TranscriptionResult(Protocol):
+    """Protocol for transcription results."""
+    text: str
+
+
 class WhisperTranscriber:
     def __init__(
         self,
