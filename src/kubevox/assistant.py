@@ -112,16 +112,22 @@ class Assistant:
                 if callback:
                     callback(response)
                 else:
-                    # Extract the formatted response from the results
+                    # Extract and combine all formatted responses from the results
                     if response and "results" in response and response["results"]:
-                        formatted_response = response["results"][0].get("formatted_response", "")
-                        if formatted_response:
+                        formatted_responses = [
+                            result.get("formatted_response", "")
+                            for result in response["results"]
+                            if result.get("formatted_response")
+                        ]
+                        
+                        if formatted_responses:
+                            combined_response = " and ".join(formatted_responses)
                             if self.output_mode == "voice" and self.speaker:
-                                self.speaker.speak(formatted_response)  # Pass the actual text response
+                                self.speaker.speak(combined_response)
                             else:
-                                print(f"Assistant: {formatted_response}")
+                                print(f"Assistant: {combined_response}")
                         else:
-                            logger.warning("No formatted response available")
+                            logger.warning("No formatted responses available")
                     else:
                         logger.warning("No results in response")
             except Exception as e:
