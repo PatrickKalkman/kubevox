@@ -10,4 +10,4 @@ def timing(operation: str):
     start_time = time.time()
     yield
     elapsed_time = time.time() - start_time
-    logger.info(f"⏱️  {operation:<50} │ {elapsed_time:.3f}s")
+    logger.info(f"⏱️  {operation}: {elapsed_time:.3f}s")

@@ -38,7 +38,7 @@ class Assistant:
             input_device: Audio input device index
             recording_duration: Duration of each recording in seconds
         """
-        logger.info("🔄 Initializing Kubernetes Assistant                  │ ...")
+        logger.info("🔄 Initializing Kubernetes Assistant...")
 
         self.output_mode = output_mode
 
@@ -58,7 +58,7 @@ class Assistant:
         )
 
         self._is_running = False
-        logger.info("✅ Assistant Initialization                          │ OK")
+        logger.info("✅ Assistant initialized")
 
     async def process_query(self, query: str) -> dict:
         """
@@ -70,13 +70,13 @@ class Assistant:
         Returns:
             The processed response including any function execution results
         """
-        logger.info(f"🔍 Processing Query                                  │ {query}")
+        logger.info(f"🔍 Processing query: {query}")
 
         # Get LLM response
         with timing("LLM Response Generation"):
             response = await self.llamaClient.generate_llm_response(query)
             function_calls = self.llamaClient.extract_function_calls(response)
-        logger.info(f"🔧 Extracted Functions                              │ {function_calls}")
+        logger.info(f"🔧 Extracted functions: {function_calls}")
 
         # Execute any identified functions
         results = []

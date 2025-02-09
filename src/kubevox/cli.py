@@ -48,7 +48,7 @@ async def run_text_mode(assistant: Assistant, query: str) -> None:
                 if assistant.output_mode == "voice" and assistant.speaker:
                     assistant.speaker.speak(combined_response)
                 else:
-                    logger.info(f"🤖 Assistant Response                                │ {combined_response}")
+                    logger.info(f"🤖 Assistant: {combined_response}")
         else:
             logger.warning("No formatted responses available")
 
@@ -85,7 +85,7 @@ def text(
     """Run in text mode with a single query."""
 
     async def run():
-        logger.info("🔄 Initializing LlamaClient                           │ ...")
+        logger.info("🔄 Initializing LlamaClient...")
         config = LlamaServerConfig()
         client = LlamaClient(config)
 
@@ -94,7 +94,7 @@ def text(
             logger.error(f"Server health check failed: {message}")
             raise typer.Exit(1)
 
-        logger.info("✅ Server Health Check                               │ OK")
+        logger.info("✅ Server health check: OK")
 
         assistant = Assistant(
             llamaClient=client,
