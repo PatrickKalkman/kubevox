@@ -6,14 +6,13 @@ import asyncio
 import sys
 from typing import Optional
 
-from kubevox.utils.timing import timing
-
 import typer
 from dotenv import load_dotenv
 from loguru import logger
 
 from kubevox.assistant import Assistant
 from kubevox.llama.llama_client import LlamaClient, LlamaServerConfig
+from kubevox.utils.timing import timing
 
 # Configure logger to only show info and higher
 logger.remove()
@@ -34,14 +33,11 @@ async def run_text_mode(assistant: Assistant, query: str) -> None:
     with timing("Total Query Processing"):
         with timing("Query Processing"):
             response = await assistant.process_query(query)
-        
-        with timing("Response Formatting"):
-            formatted_responses = [
-                result.get("formatted_response", "")
-                for result in response["results"]
-                if result.get("formatted_response")
-            ]
-        
+
+        formatted_responses = [
+            result.get("formatted_response", "") for result in response["results"] if result.get("formatted_response")
+        ]
+
         if formatted_responses:
             combined_response = " and ".join(formatted_responses)
             with timing("Response Output"):
@@ -51,6 +47,7 @@ async def run_text_mode(assistant: Assistant, query: str) -> None:
                     logger.info(f"🤖 Assistant: {combined_response}")
         else:
             logger.warning("No formatted responses available")
+            logger.info(f"🤖 Assistant: {response}")
 
 
 def run_voice_mode(assistant: Assistant, duration: float, device_index: Optional[int]) -> None:
