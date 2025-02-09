@@ -108,7 +108,7 @@ async def analyze_deployment_logs(deployment_name: str, namespace: str = "defaul
 
 @FunctionRegistry.register(
     description="Get version information for both Kubernetes API server and nodes.",
-    response_template="Retrieved version information for the API server and nodes.",
+    response_template="API server version is {api_version}. Node versions: {node_versions}.",
 )
 async def get_version_info() -> Dict[str, Any]:
     """Get version information for the Kubernetes cluster."""
