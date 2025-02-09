@@ -24,6 +24,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/kubevox"]
 
+[project.scripts]
+kubevox = "kubevox.cli:app"
+
 [tool.ruff]
 # Enable the pycodestyle (`E`) and Pyflakes (`F`) rules by default
 lint.select = ["E", "F", "I"]
