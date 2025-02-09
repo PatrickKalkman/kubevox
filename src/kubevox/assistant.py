@@ -4,8 +4,6 @@ Main assistant implementation combining speech, LLM, and Kubernetes functionalit
 
 from typing import Any, Callable, Dict, Literal, Optional
 
-from kubevox.utils.timing import timing
-
 from loguru import logger
 
 from kubevox.audio.elevenlabs_speaker import ElevenLabsSpeaker
@@ -13,6 +11,7 @@ from kubevox.audio.whisper_transcriber import WhisperTranscriber
 from kubevox.llama.llama_client import LlamaClient
 from kubevox.registry.function_executor import FunctionExecutor
 from kubevox.registry.function_registry import FunctionRegistry
+from kubevox.utils.timing import timing
 
 
 class Assistant:
@@ -129,7 +128,7 @@ class Assistant:
                             for result in response["results"]
                             if result.get("formatted_response")
                         ]
-                        
+
                         if formatted_responses:
                             combined_response = " and ".join(formatted_responses)
                             if self.output_mode == "voice" and self.speaker:
