@@ -1,6 +1,8 @@
 import time
 from contextlib import contextmanager
+
 from loguru import logger
+
 
 @contextmanager
 def timing(operation: str):
