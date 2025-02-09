@@ -45,10 +45,16 @@ class Assistant:
         # Initialize LLM
         self.llamaClient = llamaClient
 
-        # Initialize speech components
+        # Initialize speech components only when needed
         self.speaker = ElevenLabsSpeaker(api_key=elevenlabs_api_key) if output_mode == "voice" else None
-        self.transcriber = WhisperTranscriber(
-            model_path=model_path, input_device=input_device, recording_duration=recording_duration
+        self.transcriber = (
+            WhisperTranscriber(
+                model_path=model_path,
+                input_device=input_device,
+                recording_duration=recording_duration,
+            )
+            if output_mode == "voice"
+            else None
         )
 
         self._is_running = False
