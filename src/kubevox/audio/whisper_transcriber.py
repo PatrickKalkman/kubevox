@@ -1,5 +1,6 @@
 import queue
-from typing import Callable, Optional
+from dataclasses import dataclass
+from typing import Callable, Optional, Protocol
 
 import mlx_whisper
 import numpy as np
