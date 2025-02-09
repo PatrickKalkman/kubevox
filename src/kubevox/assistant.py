@@ -4,6 +4,8 @@ Main assistant implementation combining speech, LLM, and Kubernetes functionalit
 
 from typing import Any, Callable, Dict, Literal, Optional
 
+from kubevox.utils.timing import timing
+
 from loguru import logger
 
 from kubevox.audio.elevenlabs_speaker import ElevenLabsSpeaker
@@ -65,17 +67,19 @@ class Assistant:
         logger.info(f"Processing query: {query}")
 
         # Get LLM response
-        response = await self.llamaClient.generate_llm_response(query)
-        function_calls = self.llamaClient.extract_function_calls(response)
+        with timing("LLM Response Generation"):
+            response = await self.llamaClient.generate_llm_response(query)
+            function_calls = self.llamaClient.extract_function_calls(response)
         logger.info(f"Extracted function calls: {function_calls}")
 
         # Execute any identified functions
         results = []
         for func_call in function_calls:
-            # Extract function name from the call string (e.g. "get_cluster_status()" -> "get_cluster_status")
-            func_name = func_call.split("(")[0]
-            result = await self.execute_function_call({"name": func_name, "parameters": {}})
-            results.append(result)
+            with timing(f"Function Execution: {func_call}"):
+                # Extract function name from the call string (e.g. "get_cluster_status()" -> "get_cluster_status")
+                func_name = func_call.split("(")[0]
+                result = await self.execute_function_call({"name": func_name, "parameters": {}})
+                results.append(result)
 
         return {"response": response, "function_calls": function_calls, "results": results}
 

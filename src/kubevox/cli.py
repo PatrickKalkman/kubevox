@@ -6,6 +6,8 @@ import asyncio
 import sys
 from typing import Optional
 
+from kubevox.utils.timing import timing
+
 import typer
 from dotenv import load_dotenv
 from loguru import logger
@@ -29,25 +31,24 @@ async def run_text_mode(assistant: Assistant, query: str) -> None:
         assistant: Initialized Assistant instance
         query: Text query to process
     """
-    import time
-    start_time = time.time()
-    
-    response = await assistant.process_query(query)
-    formatted_responses = [
-        result.get("formatted_response", "")
-        for result in response["results"]
-        if result.get("formatted_response")
-    ]
-    
-    processing_time = time.time() - start_time
-    
-    if formatted_responses:
-        combined_response = " and ".join(formatted_responses)
-        if assistant.output_mode == "voice" and assistant.speaker:
-            assistant.speaker.speak(combined_response)
-        else:
-            logger.info(f"Assistant: {combined_response}")
-        logger.info(f"Query processed in {processing_time:.2f} seconds")
+    with timing("Total Query Processing"):
+        with timing("Query Processing"):
+            response = await assistant.process_query(query)
+        
+        with timing("Response Formatting"):
+            formatted_responses = [
+                result.get("formatted_response", "")
+                for result in response["results"]
+                if result.get("formatted_response")
+            ]
+        
+        if formatted_responses:
+            combined_response = " and ".join(formatted_responses)
+            with timing("Response Output"):
+                if assistant.output_mode == "voice" and assistant.speaker:
+                    assistant.speaker.speak(combined_response)
+                else:
+                    logger.info(f"Assistant: {combined_response}")
     else:
         logger.warning("No formatted responses available")
 
