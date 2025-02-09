@@ -27,15 +27,39 @@ async def get_number_of_nodes() -> Dict[str, Any]:
 
 
 @FunctionRegistry.register(
-    description="Get the number of pods in the Kubernetes cluster.",
-    response_template="There are {pod_count} pods running in the cluster.",
+    description="Get the number of pods in the Kubernetes cluster, optionally filtered by namespace.",
+    response_template="There are {pod_count} pods running{namespace_info}.",
+    parameters={
+        "type": "object",
+        "properties": {
+            "namespace": {
+                "type": "string",
+                "description": "Namespace to filter pods (optional - if not provided, counts pods across all namespaces)",
+            },
+        },
+    },
 )
-async def get_number_of_pods() -> Dict[str, Any]:
-    """Get the total number of pods across all namespaces."""
+async def get_number_of_pods(namespace: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Get the total number of pods, optionally filtered by namespace.
+    
+    Args:
+        namespace: Optional namespace to filter pods. If None, counts pods across all namespaces.
+    """
     config.load_kube_config()
     v1 = client.CoreV1Api()
-    pods = v1.list_pod_for_all_namespaces()
-    return {"pod_count": len(pods.items)}
+    
+    if namespace:
+        pods = v1.list_namespaced_pod(namespace=namespace)
+        namespace_info = f" in namespace '{namespace}'"
+    else:
+        pods = v1.list_pod_for_all_namespaces()
+        namespace_info = " across all namespaces"
+    
+    return {
+        "pod_count": len(pods.items),
+        "namespace_info": namespace_info
+    }
 
 
 @FunctionRegistry.register(
