@@ -47,7 +47,9 @@ async def run_text_mode(assistant: Assistant, query: str) -> None:
                     logger.info(f"🤖 Assistant: {combined_response}")
         else:
             logger.warning("No formatted responses available")
-            logger.info(f"🤖 Assistant: {response}")
+            # Show the content field from the LLM response when no formatted responses
+            content = response.get("response", {}).get("content", "No response content available")
+            logger.info(f"🤖 Assistant: {content}")
 
 
 def run_voice_mode(assistant: Assistant, duration: float, device_index: Optional[int]) -> None:
