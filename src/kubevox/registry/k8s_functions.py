@@ -5,7 +5,7 @@ Definitions of functions that interact with a Kubernetes cluster that the LLM us
 import os
 import re
 from collections import defaultdict
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import aiohttp
 import yaml
