@@ -173,7 +173,7 @@ class WhisperTranscriber:
 
         return audio_data.astype(np.float32)
 
-    def transcribe_audio(self, audio_data: np.ndarray) -> str:
+    def transcribe_audio(self, audio_data: np.ndarray) -> dict:
         """Transcribe audio data using mlx-whisper."""
         try:
             logger.info(f"Starting transcription... Audio shape: {audio_data.shape}")
@@ -182,14 +182,14 @@ class WhisperTranscriber:
             )
 
             result = mlx_whisper.transcribe(audio_data, path_or_hf_repo=self.model_path)
-            logger.info("Transcription completed")
+            if result is None:
+                return {"text": "Error during transcription"}
             if not result.get("text"):
-                logger.warning("No text in transcription result")
-                return ""
-            return result["text"]
+                return {"text": ""}
+            return result
         except Exception as e:
             logger.error(f"Error during transcription: {e}")
-            return "Error during transcription"
+            return {"text": f"Error during transcription: {str(e)}"}
 
     def on_press(self, key):
         """Handle key press events."""
@@ -204,6 +204,7 @@ class WhisperTranscriber:
 
     def on_release(self, key):
         """Handle key release events."""
+        logger.debug(f"Key released: {key}")
         try:
             if key == keyboard.Key.space and self._is_recording:
                 logger.info("Space released - stopping recording")
@@ -211,7 +212,8 @@ class WhisperTranscriber:
 
                 if audio_data is not None:
                     logger.info("Processing recorded audio...")
-                    transcribed_text = self.transcribe_audio(audio_data)
+                    transcription_result = self.transcribe_audio(audio_data)
+                    transcribed_text = transcription_result.get("text", "")
                     if self._callback:
                         self._callback(transcribed_text)
                     else:
