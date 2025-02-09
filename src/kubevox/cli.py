@@ -49,8 +49,8 @@ async def run_text_mode(assistant: Assistant, query: str) -> None:
                     assistant.speaker.speak(combined_response)
                 else:
                     logger.info(f"Assistant: {combined_response}")
-    else:
-        logger.warning("No formatted responses available")
+        else:
+            logger.warning("No formatted responses available")
 
 
 def run_voice_mode(assistant: Assistant, duration: float, device_index: Optional[int]) -> None:
