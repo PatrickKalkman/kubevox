@@ -20,7 +20,7 @@ class FunctionExecutor:
             Dict containing the execution results and formatted response
         """
         try:
-            logger.info(f"Executing function: {func.__name__} with params: {kwargs}")
+            logger.debug(f"Executing function: {func.__name__} with params: {kwargs}")
 
             # Check if function is async
             if inspect.iscoroutinefunction(func):
@@ -34,7 +34,7 @@ class FunctionExecutor:
             # Format the response if template exists
             formatted_response = template.format(**result) if template else str(result)
 
-            logger.info(f"Function {func.__name__} executed successfully")
+            logger.debug(f"Function {func.__name__} executed successfully")
 
             return {
                 "success": True,

@@ -48,7 +48,7 @@ async def run_text_mode(assistant: Assistant, query: str) -> None:
                 if assistant.output_mode == "voice" and assistant.speaker:
                     assistant.speaker.speak(combined_response)
                 else:
-                    logger.info(f"Assistant: {combined_response}")
+                    logger.info(f"🤖 Assistant Response                                │ {combined_response}")
         else:
             logger.warning("No formatted responses available")
 
