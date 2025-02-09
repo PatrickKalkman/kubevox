@@ -29,6 +29,9 @@ async def run_text_mode(assistant: Assistant, query: str) -> None:
         assistant: Initialized Assistant instance
         query: Text query to process
     """
+    import time
+    start_time = time.time()
+    
     response = await assistant.process_query(query)
     formatted_responses = [
         result.get("formatted_response", "")
@@ -36,12 +39,15 @@ async def run_text_mode(assistant: Assistant, query: str) -> None:
         if result.get("formatted_response")
     ]
     
+    processing_time = time.time() - start_time
+    
     if formatted_responses:
         combined_response = " and ".join(formatted_responses)
         if assistant.output_mode == "voice" and assistant.speaker:
             assistant.speaker.speak(combined_response)
         else:
             logger.info(f"Assistant: {combined_response}")
+        logger.info(f"Query processed in {processing_time:.2f} seconds")
     else:
         logger.warning("No formatted responses available")
 
