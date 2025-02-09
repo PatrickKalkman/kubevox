@@ -81,9 +81,24 @@ class Assistant:
         results = []
         for func_call in function_calls:
             with timing(f"Function Execution: {func_call}"):
-                # Extract function name from the call string (e.g. "get_cluster_status()" -> "get_cluster_status")
+                # Parse function name and parameters
+                # Example: "switch_cluster(cluster_name='production-cluster')" 
                 func_name = func_call.split("(")[0]
-                result = await self.execute_function_call({"name": func_name, "parameters": {}})
+                params_str = func_call[len(func_name)+1:-1]  # Remove function name and parentheses
+                
+                # Parse parameters into a dictionary
+                parameters = {}
+                if params_str:
+                    # Split on commas, handle key=value pairs
+                    param_pairs = [p.strip() for p in params_str.split(",")]
+                    for pair in param_pairs:
+                        if "=" in pair:
+                            key, value = pair.split("=")
+                            # Remove quotes from string values
+                            value = value.strip("'\"")
+                            parameters[key.strip()] = value
+
+                result = await self.execute_function_call({"name": func_name, "parameters": parameters})
                 results.append(result)
 
         return {"response": response, "function_calls": function_calls, "results": results}
