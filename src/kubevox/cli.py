@@ -7,6 +7,7 @@ import sys
 from typing import Optional
 
 import typer
+from dotenv import load_dotenv
 from loguru import logger
 
 from kubevox.assistant import Assistant
@@ -18,6 +19,8 @@ logger.add(sys.stderr, level="INFO")
 
 app = typer.Typer(help="Kubernetes Voice Assistant CLI")
 
+load_dotenv()
+
 
 async def run_text_mode(assistant: Assistant, query: str) -> None:
     """Run the assistant in text mode with a single query.
@@ -27,11 +30,11 @@ async def run_text_mode(assistant: Assistant, query: str) -> None:
         query: Text query to process
     """
     response = await assistant.process_query(query)
-    response_text = response.get("response", response)
+    response_text = response["results"][0]["formatted_response"]
     if assistant.output_mode == "voice" and assistant.speaker:
         assistant.speaker.speak(response_text)
     else:
-        print(f"Assistant: {response_text}")
+        logger.info(f"Assistant: {response['results'][0]['formatted_response']}")
 
 
 def run_voice_mode(assistant: Assistant, duration: float, device_index: Optional[int]) -> None:
@@ -60,12 +63,11 @@ def text(
     output: str = typer.Option("text", "--output", help="Output mode (text or voice via ElevenLabs)"),
     elevenlabs_key: Optional[str] = typer.Option(None, "--elevenlabs-key", help="ElevenLabs API key"),
     model: str = typer.Option(
-        "mlx-community/whisper-large-v3-turbo",
-        "--model",
-        help="Path or name of the Whisper model to use"
+        "mlx-community/whisper-large-v3-turbo", "--model", help="Path or name of the Whisper model to use"
     ),
 ):
     """Run in text mode with a single query."""
+
     async def run():
         logger.info("Initializing LlamaClient...")
         config = LlamaServerConfig()
@@ -93,15 +95,14 @@ def text(
 
     asyncio.run(run())
 
+
 @app.command()
 def voice(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
     output: str = typer.Option("text", "--output", help="Output mode (text or voice via ElevenLabs)"),
     elevenlabs_key: Optional[str] = typer.Option(None, "--elevenlabs-key", help="ElevenLabs API key"),
     model: str = typer.Option(
-        "mlx-community/whisper-large-v3-turbo",
-        "--model",
-        help="Path or name of the Whisper model to use"
+        "mlx-community/whisper-large-v3-turbo", "--model", help="Path or name of the Whisper model to use"
     ),
     duration: float = typer.Option(4.0, "--duration", help="Recording duration in seconds"),
     device: Optional[int] = typer.Option(None, "--device", help="Audio input device index"),
@@ -118,7 +119,7 @@ def voice(
             raise typer.Exit(1)
 
     asyncio.run(check_health())
-    
+
     logger.info("Server is healthy, starting assistant...")
 
     assistant = Assistant(
@@ -135,6 +136,7 @@ def voice(
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         raise typer.Exit(1)
+
 
 if __name__ == "__main__":
     app()

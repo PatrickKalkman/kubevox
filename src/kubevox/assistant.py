@@ -73,15 +73,11 @@ class Assistant:
         results = []
         for func_call in function_calls:
             # Extract function name from the call string (e.g. "get_cluster_status()" -> "get_cluster_status")
-            func_name = func_call.split('(')[0]
+            func_name = func_call.split("(")[0]
             result = await self.execute_function_call({"name": func_name, "parameters": {}})
             results.append(result)
 
-        return {
-            "response": response,
-            "function_calls": function_calls,
-            "results": results
-        }
+        return {"response": response, "function_calls": function_calls, "results": results}
 
     async def process_speech(self, audio_data) -> dict:
         """
@@ -103,9 +99,6 @@ class Assistant:
     def start_voice_interaction(self, callback: Optional[Callable[[dict], None]] = None) -> None:
         """
         Start continuous voice interaction mode.
-
-        Args:
-            callback: Optional function to handle responses
         """
         logger.info("Starting voice interaction mode...")
         self._is_running = True
@@ -114,15 +107,25 @@ class Assistant:
             if not transcribed_text.strip():
                 return
 
-            response = await self.process_query(transcribed_text)
-            if callback:
-                callback(response)
-            else:
-                response_text = response.get("response", response)
-                if self.output_mode == "voice" and self.speaker:
-                    self.speaker.speak(response_text)
+            try:
+                response = await self.process_query(transcribed_text)
+                if callback:
+                    callback(response)
                 else:
-                    print(f"Assistant: {response_text}")
+                    # Extract the formatted response from the results
+                    if response and "results" in response and response["results"]:
+                        formatted_response = response["results"][0].get("formatted_response", "")
+                        if formatted_response:
+                            if self.output_mode == "voice" and self.speaker:
+                                self.speaker.speak(formatted_response)  # Pass the actual text response
+                            else:
+                                print(f"Assistant: {formatted_response}")
+                        else:
+                            logger.warning("No formatted response available")
+                    else:
+                        logger.warning("No results in response")
+            except Exception as e:
+                logger.error(f"Error processing speech: {e}")
 
         def sync_callback(transcribed_text: str):
             if self._is_running:  # Only process if still running

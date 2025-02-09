@@ -17,7 +17,7 @@ class ElevenLabsSpeaker:
     def __init__(
         self,
         api_key: Optional[str] = None,
-        default_voice_id: str = "9BWtsMINqrJLrRacOk9x",
+        default_voice_id: str = "21m00Tcm4TlvDq8ikWAM",
         default_model_id: str = "eleven_multilingual_v2",
     ):
         """Initialize the ElevenLabsSpeaker.
@@ -54,21 +54,3 @@ class ElevenLabsSpeaker:
             return None
 
         return audio_stream
-
-    def speak_to_file(
-        self, text: str, output_path: str, voice_id: Optional[str] = None, model_id: Optional[str] = None
-    ) -> None:
-        """Convert text to speech and save it to a file.
-
-        Args:
-            text: The text to convert to speech.
-            output_path: Path where the audio file should be saved.
-            voice_id: Optional voice ID to use. Falls back to default if not provided.
-            model_id: Optional model ID to use. Falls back to default if not provided.
-        """
-        audio = self.client.text_to_speech.convert(
-            text=text, voice_id=voice_id or self.default_voice_id, model_id=model_id or self.default_model_id
-        )
-
-        with open(output_path, "wb") as f:
-            f.write(audio)
