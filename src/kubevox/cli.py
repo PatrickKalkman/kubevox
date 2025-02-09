@@ -30,11 +30,20 @@ async def run_text_mode(assistant: Assistant, query: str) -> None:
         query: Text query to process
     """
     response = await assistant.process_query(query)
-    response_text = response["results"][0]["formatted_response"]
-    if assistant.output_mode == "voice" and assistant.speaker:
-        assistant.speaker.speak(response_text)
+    formatted_responses = [
+        result.get("formatted_response", "")
+        for result in response["results"]
+        if result.get("formatted_response")
+    ]
+    
+    if formatted_responses:
+        combined_response = " and ".join(formatted_responses)
+        if assistant.output_mode == "voice" and assistant.speaker:
+            assistant.speaker.speak(combined_response)
+        else:
+            logger.info(f"Assistant: {combined_response}")
     else:
-        logger.info(f"Assistant: {response['results'][0]['formatted_response']}")
+        logger.warning("No formatted responses available")
 
 
 def run_voice_mode(assistant: Assistant, duration: float, device_index: Optional[int]) -> None:
