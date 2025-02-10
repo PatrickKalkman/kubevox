@@ -1,6 +1,6 @@
 # KubeVox: Your Kubernetes Voice Assistant (Now Running on Local LLMs!)
 
-[![KubeVox in Action](https://img.youtube.com/vi/YOUTUBE_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID)
+[![KubeVox in Action](https://img.youtube.com/vi/N2WdsJc92UU/maxresdefault.jpg)](https://www.youtube.com/watch?v=N2WdsJc92UU)
 
 [![GitHub stars](https://img.shields.io/github/stars/PatrickKalkman/kubevox)](https://github.com/PatrickKalkman/kubevox/stargazers)
 [![GitHub contributors](https://img.shields.io/github/contributors/PatrickKalkman/kubevox)](https://github.com/PatrickKalkman/kubevox/graphs/contributors)
