@@ -158,9 +158,9 @@ async def get_kubernetes_latest_version_information() -> Dict[str, Any]:
 
     # Find the first non-alpha/beta/rc release
     for release in releases:
-        version = release['tag_name']
-        if not any(x in version.lower() for x in ['alpha', 'beta', 'rc']):
-            latest_version = version.lstrip('v')
+        version = release["tag_name"]
+        if not any(x in version.lower() for x in ["alpha", "beta", "rc"]):
+            latest_version = version.lstrip("v")
             break
     else:
         latest_version = "Unknown"
