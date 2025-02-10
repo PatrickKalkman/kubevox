@@ -146,21 +146,23 @@ async def get_version_info() -> Dict[str, Any]:
 
 
 @FunctionRegistry.register(
-    description="Retrieve the latest stable version information from the Kubernetes GitHub repository.",
+    description="Retrieve the latest stable version information from the Kubernetes API.",
     response_template="Latest Kubernetes stable version is {latest_stable_version}.",
 )
 async def get_kubernetes_latest_version_information() -> Dict[str, Any]:
-    """Get the latest stable Kubernetes version from GitHub."""
-    url = "https://raw.githubusercontent.com/kubernetes/kubernetes/master/CHANGELOG/CHANGELOG-1.28.md"
+    """Get the latest stable Kubernetes version from the official API."""
+    url = "https://api.github.com/repos/kubernetes/kubernetes/releases"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
-            content = await response.text()
+            releases = await response.json()
 
-    # Extract version using regex
-    version_match = re.search(r"# v1\.28\.(\d+)", content)
-    if version_match:
-        latest_version = f"1.28.{version_match.group(1)}"
+    # Find the first non-alpha/beta/rc release
+    for release in releases:
+        version = release['tag_name']
+        if not any(x in version.lower() for x in ['alpha', 'beta', 'rc']):
+            latest_version = version.lstrip('v')
+            break
     else:
         latest_version = "Unknown"
 
